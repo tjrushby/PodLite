@@ -34,6 +34,7 @@ captures/
 
 # Intellij
 *.iml
+.idea/vcs.xml
 .idea/encodings.xml
 .idea/modules.xml
 .idea/runConfigurations.xml
