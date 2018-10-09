@@ -16,20 +16,38 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     ext {
+        dagger_version = "2.14.1"
+        lifecycle_version = "1.1.1"
         room_version = "1.1.1"
         support_library_version = "28.0.0"
     }
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // support libraries
     implementation "com.android.support:appcompat-v7:${support_library_version}"
+    implementation "com.android.support:design:${support_library_version}"
     implementation "com.android.support:recyclerview-v7:${support_library_version}"
 
+    // lifecycle
+    implementation "android.arch.lifecycle:extensions:$lifecycle_version"
+
+    // room
     implementation "android.arch.persistence.room:runtime:$room_version"
     annotationProcessor "android.arch.persistence.room:compiler:$room_version"
+
+    // dagger
+    implementation "com.google.dagger:dagger:${dagger_version}"
+    annotationProcessor "com.google.dagger:dagger-compiler:${dagger_version}"
+    annotationProcessor "com.google.dagger:dagger-android-processor:${dagger_version}"
+    implementation "com.google.dagger:dagger-android-support:${dagger_version}"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "android.arch.persistence.room:testing:$room_version"
