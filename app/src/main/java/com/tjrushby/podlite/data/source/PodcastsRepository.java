@@ -14,37 +14,21 @@ public class PodcastsRepository implements PodcastsDataSource {
 
     private final PodcastsDataSource podcastsLocalDataSource;
 
-    private final PodcastsDataSource podcastsRemoteDataSource;
-
-    /*
-     * this has package visibility for testing
-     */
-    protected Map<String, Podcast> mCachedPodcasts;
-
-    /*
-     * marks the cache as invalid
-     */
-    protected boolean mCacheIsDirty;
+    private Map<String, Podcast> cachedPodcasts;
 
     // prevent direct instantiation
-    private PodcastsRepository(@NonNull PodcastsDataSource podcastsLocalDataSource,
-                               @NonNull PodcastsDataSource podcastsRemoteDataSource) {
+    private PodcastsRepository(@NonNull PodcastsDataSource podcastsLocalDataSource) {
         this.podcastsLocalDataSource = podcastsLocalDataSource;
-        this.podcastsRemoteDataSource = podcastsRemoteDataSource;
     }
 
     /*
      * returns the single instance of this class, creating it if necessary
      */
-    public static PodcastsRepository getInstance(PodcastsDataSource podcastsLocalDataSource,
-                                                 PodcastsDataSource podcastsRemoteDataSource) {
+    private static PodcastsRepository getInstance(PodcastsDataSource podcastsLocalDataSource) {
         if(INSTANCE == null) {
             synchronized (PodcastsRepository.class) {
                 if(INSTANCE == null) {
-                    INSTANCE = new PodcastsRepository(
-                            podcastsLocalDataSource,
-                            podcastsRemoteDataSource
-                    );
+                    INSTANCE = new PodcastsRepository(podcastsLocalDataSource);
                 }
             }
         }
@@ -57,37 +41,32 @@ public class PodcastsRepository implements PodcastsDataSource {
     }
 
     /*
-     * gets podcasts from the cache, local data source, or remote data source depending on which is
-     * available. If no sources retrieve data LoadPodcastsCallback#onDataNotAvailable is called
+     * gets podcasts from the cache or local data source depending on which is available.
+     * If no sources retrieve data LoadPodcastsCallback#onDataNotAvailable is called
      */
     @Override
     public void getPodcasts(@NonNull final LoadPodcastsCallback callback) {
         // return podcasts from cache if available
-        if(mCachedPodcasts != null && !mCacheIsDirty) {
-            callback.onPodcastsLoaded(new ArrayList<>(mCachedPodcasts.values()));
+        if(cachedPodcasts != null) {
+            callback.onPodcastsLoaded(new ArrayList<>(cachedPodcasts.values()));
             return;
         }
 
-        // if the cache is dirty we need to retrieve data from remote source
-        if(mCacheIsDirty) {
-            getPodcastsFromRemoteDataSource(callback);
-        } else {
-            // retrieve data from local storage if available
-            podcastsLocalDataSource.getPodcasts(new LoadPodcastsCallback() {
-                @Override
-                public void onPodcastsLoaded(List<Podcast> podcasts) {
-                    // successfully retrieved from local data source, update the cache and return
-                    refreshCache(podcasts);
-                    callback.onPodcastsLoaded(podcasts);
-                }
+        // retrieve data from local storage if available
+        podcastsLocalDataSource.getPodcasts(new LoadPodcastsCallback() {
+            @Override
+            public void onPodcastsLoaded(List<Podcast> podcasts) {
+                // successfully retrieved from local data source, update the cache and return
+                refreshCache(podcasts);
+                callback.onPodcastsLoaded(podcasts);
+            }
 
-                @Override
-                public void onDataNotAvailable() {
-                    // data not available in local storage, attempt to retrieve from remote source
-                    getPodcastsFromRemoteDataSource(callback);
-                }
-            });
-        }
+            @Override
+            public void onDataNotAvailable() {
+                // data not available in local storage
+                callback.onDataNotAvailable();
+            }
+        });
     }
 
     /*
@@ -95,7 +74,8 @@ public class PodcastsRepository implements PodcastsDataSource {
      * If no sources contain podcastId GetPodcastCallback#onDataNotAvailable is called
      */
     @Override
-    public void getPodcast(@NonNull final String podcastId, @NonNull final GetPodcastCallback callback) {
+    public void getPodcast(@NonNull final String podcastId,
+                           @NonNull final GetPodcastCallback callback) {
         // return podcast from cache if available
         Podcast podcast = getPodcastWithId(podcastId);
 
@@ -104,7 +84,7 @@ public class PodcastsRepository implements PodcastsDataSource {
             return;
         }
 
-        // check local source for podcast, otherwise attempt to retrieve from remote source
+        // check local source for podcast
         podcastsLocalDataSource.getPodcast(podcastId, new GetPodcastCallback() {
             @Override
             public void onPodcastLoaded(Podcast podcast) {
@@ -114,39 +94,18 @@ public class PodcastsRepository implements PodcastsDataSource {
                 }
 
                 // add podcast to cache
-                if(mCachedPodcasts == null) {
-                    mCachedPodcasts = new LinkedHashMap<>();
+                if(cachedPodcasts == null) {
+                    cachedPodcasts = new LinkedHashMap<>();
                 }
 
-                mCachedPodcasts.put(podcast.getPodId(), podcast);
+                cachedPodcasts.put(podcast.getPodId(), podcast);
                 callback.onPodcastLoaded(podcast);
             }
 
             @Override
             public void onDataNotAvailable() {
-                // attempt to retrieve podcast from remote source
-                podcastsRemoteDataSource.getPodcast(podcastId, new GetPodcastCallback() {
-                    @Override
-                    public void onPodcastLoaded(Podcast podcast) {
-                        if(podcast == null) {
-                            onDataNotAvailable();
-                            return;
-                        }
-
-                        // add podcast to cache
-                        if(mCachedPodcasts == null) {
-                            mCachedPodcasts = new LinkedHashMap<>();
-                        }
-
-                        mCachedPodcasts.put(podcast.getPodId(), podcast);
-                        callback.onPodcastLoaded(podcast);
-                    }
-
-                    @Override
-                    public void onDataNotAvailable() {
-                        callback.onDataNotAvailable();
-                    }
-                });
+                // data not available in local storage
+                callback.onDataNotAvailable();
             }
         });
 
@@ -157,11 +116,11 @@ public class PodcastsRepository implements PodcastsDataSource {
         podcastsLocalDataSource.savePodcast(podcast);
 
         // add podcast to cache
-        if(mCachedPodcasts == null) {
-            mCachedPodcasts = new LinkedHashMap<>();
+        if(cachedPodcasts == null) {
+            cachedPodcasts = new LinkedHashMap<>();
         }
 
-        mCachedPodcasts.put(podcast.getPodId(), podcast);
+        cachedPodcasts.put(podcast.getPodId(), podcast);
     }
 
     @Override
@@ -169,11 +128,11 @@ public class PodcastsRepository implements PodcastsDataSource {
         podcastsLocalDataSource.deleteAllPodcasts();
 
         // clear cache
-        if(mCachedPodcasts == null) {
-            mCachedPodcasts = new LinkedHashMap<>();
+        if(cachedPodcasts == null) {
+            cachedPodcasts = new LinkedHashMap<>();
         }
 
-        mCachedPodcasts.clear();
+        cachedPodcasts.clear();
     }
 
     @Override
@@ -181,41 +140,21 @@ public class PodcastsRepository implements PodcastsDataSource {
         podcastsLocalDataSource.deletePodcast(podcastId);
 
         // remove podcast from cache
-        mCachedPodcasts.remove(podcastId);
-    }
-
-    private void getPodcastsFromRemoteDataSource(@NonNull final LoadPodcastsCallback callback) {
-        podcastsRemoteDataSource.getPodcasts(new LoadPodcastsCallback() {
-            @Override
-            public void onPodcastsLoaded(List<Podcast> podcasts) {
-                refreshCache(podcasts);
-                refreshLocalDataSource(podcasts);
-
-                callback.onPodcastsLoaded(podcasts);
-            }
-
-            @Override
-            public void onDataNotAvailable() {
-                callback.onDataNotAvailable();
-            }
-        });
+        cachedPodcasts.remove(podcastId);
     }
 
     private void refreshCache(List<Podcast> podcasts) {
         // create new cache if it is null
-        if(mCachedPodcasts == null) {
-            mCachedPodcasts = new LinkedHashMap<>();
+        if(cachedPodcasts == null) {
+            cachedPodcasts = new LinkedHashMap<>();
         }
 
-        mCachedPodcasts.clear();
+        cachedPodcasts.clear();
 
         // add podcasts to cache
-        for(Podcast podcast : podcasts) {
-            mCachedPodcasts.put(podcast.getPodId(), podcast);
+        for (Podcast podcast : podcasts) {
+            cachedPodcasts.put(podcast.getPodId(), podcast);
         }
-
-        // mark cache as clean
-        mCacheIsDirty = false;
     }
 
     private void refreshLocalDataSource(List<Podcast> podcasts) {
@@ -223,16 +162,16 @@ public class PodcastsRepository implements PodcastsDataSource {
         podcastsLocalDataSource.deleteAllPodcasts();
 
         // save all podcasts to local database
-        for(Podcast podcast : podcasts) {
+        for (Podcast podcast : podcasts) {
             podcastsLocalDataSource.savePodcast(podcast);
         }
     }
 
     private Podcast getPodcastWithId(@NonNull String podcastId) {
-        if(mCachedPodcasts != null || !mCachedPodcasts.isEmpty()) {
+        if(cachedPodcasts == null || cachedPodcasts.isEmpty()) {
             return null;
         } else {
-            return mCachedPodcasts.get(podcastId);
+            return cachedPodcasts.get(podcastId);
         }
     }
 }
