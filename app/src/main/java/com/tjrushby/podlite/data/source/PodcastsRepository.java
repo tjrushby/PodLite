@@ -9,35 +9,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 public class PodcastsRepository implements PodcastsDataSource {
-    private volatile static PodcastsRepository INSTANCE = null;
 
     private final PodcastsDataSource podcastsLocalDataSource;
 
     private Map<String, Podcast> cachedPodcasts;
 
-    // prevent direct instantiation
-    private PodcastsRepository(@NonNull PodcastsDataSource podcastsLocalDataSource) {
+    @Inject
+    public PodcastsRepository(@NonNull PodcastsDataSource podcastsLocalDataSource) {
         this.podcastsLocalDataSource = podcastsLocalDataSource;
-    }
-
-    /*
-     * returns the single instance of this class, creating it if necessary
-     */
-    private static PodcastsRepository getInstance(PodcastsDataSource podcastsLocalDataSource) {
-        if(INSTANCE == null) {
-            synchronized (PodcastsRepository.class) {
-                if(INSTANCE == null) {
-                    INSTANCE = new PodcastsRepository(podcastsLocalDataSource);
-                }
-            }
-        }
-
-        return INSTANCE;
-    }
-
-    public static void destroyInstance() {
-        INSTANCE = null;
     }
 
     /*

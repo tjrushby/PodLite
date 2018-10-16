@@ -8,80 +8,55 @@ import com.tjrushby.podlite.util.AppExecutors;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 /*
  * local data source class, i.e., Room Database
  */
 public class PodcastsLocalDataSource implements PodcastsDataSource {
-    private static volatile PodcastsLocalDataSource INSTANCE;
 
     private PodcastsDao podcastsDao;
 
     private AppExecutors appExecutors;
 
-    // prevent direct instantiation
-    private PodcastsLocalDataSource(@NonNull AppExecutors executors,
-                                    @NonNull PodcastsDao podcastsDao) {
-        appExecutors = executors;
+    @Inject
+    public PodcastsLocalDataSource(@NonNull AppExecutors appExecutors,
+                                   @NonNull PodcastsDao podcastsDao) {
+        this.appExecutors = appExecutors;
         this.podcastsDao = podcastsDao;
-    }
-
-    public static PodcastsLocalDataSource getInstance(@NonNull AppExecutors executors,
-                                                      @NonNull PodcastsDao podcastsDao) {
-        if(INSTANCE == null) {
-            synchronized (PodcastsLocalDataSource.class) {
-                if(INSTANCE == null) {
-                    INSTANCE = new PodcastsLocalDataSource(executors, podcastsDao);
-                }
-            }
-        }
-
-        return INSTANCE;
     }
 
     @Override
     public void getPodcasts(@NonNull final LoadPodcastsCallback callback) {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final List<Podcast> podcasts = podcastsDao.getPodcasts();
+        Runnable runnable = () -> {
+            final List<Podcast> podcasts = podcastsDao.getPodcasts();
 
-                appExecutors.mainThread().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(podcasts.isEmpty()) {
-                            // no data available
-                            callback.onDataNotAvailable();
-                        } else {
-                            callback.onPodcastsLoaded(podcasts);
-                        }
-                    }
-                });
-            }
+            appExecutors.mainThread().execute(() -> {
+                if(podcasts.isEmpty()) {
+                    // no data available
+                    callback.onDataNotAvailable();
+                } else {
+                    callback.onPodcastsLoaded(podcasts);
+                }
+            });
         };
 
         appExecutors.diskIO().execute(runnable);
-
     }
 
     @Override
     public void getPodcast(@NonNull final String podcastId, @NonNull final GetPodcastCallback callback) {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final Podcast podcast = podcastsDao.getPodcastById(podcastId);
+        Runnable runnable = () -> {
+            final Podcast podcast = podcastsDao.getPodcastById(podcastId);
 
-                appExecutors.mainThread().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(podcast != null) {
-                            // found podcast with matching podcastId
-                            callback.onPodcastLoaded(podcast);
-                        } else {
-                            callback.onDataNotAvailable();
-                        }
-                    }
-                });
-            }
+            appExecutors.mainThread().execute(() -> {
+                if(podcast != null) {
+                    // found podcast with matching podcastId
+                    callback.onPodcastLoaded(podcast);
+                } else {
+                    callback.onDataNotAvailable();
+                }
+            });
         };
 
         appExecutors.diskIO().execute(runnable);
@@ -89,11 +64,8 @@ public class PodcastsLocalDataSource implements PodcastsDataSource {
 
     @Override
     public void savePodcast(@NonNull final Podcast podcast) {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                podcastsDao.insertPodcast(podcast);
-            }
+        Runnable runnable = () -> {
+            podcastsDao.insertPodcast(podcast);
         };
 
         appExecutors.diskIO().execute(runnable);
@@ -101,11 +73,8 @@ public class PodcastsLocalDataSource implements PodcastsDataSource {
 
     @Override
     public void deleteAllPodcasts() {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                podcastsDao.deleteAllPodcasts();
-            }
+        Runnable runnable = () -> {
+            podcastsDao.deleteAllPodcasts();
         };
 
         appExecutors.diskIO().execute(runnable);
@@ -113,17 +82,10 @@ public class PodcastsLocalDataSource implements PodcastsDataSource {
 
     @Override
     public void deletePodcast(@NonNull final String podcastId) {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                podcastsDao.deletePodcast(podcastId);
-            }
+        Runnable runnable = () -> {
+            podcastsDao.deletePodcast(podcastId);
         };
 
         appExecutors.diskIO().execute(runnable);
-    }
-
-    static void clearInstance() {
-        INSTANCE = null;
     }
 }
