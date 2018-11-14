@@ -80,7 +80,7 @@ public class PodcastsRepository implements PodcastsDataSource {
                     cachedPodcasts = new LinkedHashMap<>();
                 }
 
-                cachedPodcasts.put(podcast.getPodId(), podcast);
+                cachedPodcasts.put(podcast.getCollectionId(), podcast);
                 callback.onPodcastLoaded(podcast);
             }
 
@@ -102,7 +102,7 @@ public class PodcastsRepository implements PodcastsDataSource {
             cachedPodcasts = new LinkedHashMap<>();
         }
 
-        cachedPodcasts.put(podcast.getPodId(), podcast);
+        cachedPodcasts.put(podcast.getCollectionId(), podcast);
     }
 
     @Override
@@ -135,7 +135,7 @@ public class PodcastsRepository implements PodcastsDataSource {
 
         // add podcasts to cache
         for (Podcast podcast : podcasts) {
-            cachedPodcasts.put(podcast.getPodId(), podcast);
+            cachedPodcasts.put(podcast.getCollectionId(), podcast);
         }
     }
 

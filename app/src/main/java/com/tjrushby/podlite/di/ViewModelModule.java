@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModelProvider;
 
 import com.tjrushby.podlite.ViewModelFactory;
 import com.tjrushby.podlite.podcasts.PodcastsViewModel;
+import com.tjrushby.podlite.search.SearchViewModel;
 
 import dagger.Binds;
 import dagger.Module;
@@ -16,6 +17,11 @@ public abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(PodcastsViewModel.class)
     abstract ViewModel bindPodcastsViewModel(PodcastsViewModel podcastsViewModel);
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(SearchViewModel.class)
+    abstract ViewModel bindSearchViewModel(SearchViewModel searchViewModel);
 
     @Binds
     abstract ViewModelProvider.Factory bindViewModelFactory(ViewModelFactory factory);

@@ -24,7 +24,7 @@ public interface PodcastsDao {
     /*
      * select a podcast by id
      */
-    @Query("SELECT * FROM Podcasts WHERE podId = :podId")
+    @Query("SELECT * FROM Podcasts WHERE collection_id = :podId")
     Podcast getPodcastById(String podId);
 
     /*
@@ -36,7 +36,7 @@ public interface PodcastsDao {
     /*
      * deletes podcast from the table
      */
-    @Query("DELETE FROM Podcasts WHERE podId =:podcastId")
+    @Query("DELETE FROM Podcasts WHERE collection_id =:podcastId")
     void deletePodcast(String podcastId);
 
     /*

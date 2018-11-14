@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.tjrushby.podlite">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".PodLiteApp"
         android:allowBackup="true"
@@ -16,6 +18,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".search.SearchActivity" />
 
     </application>
 </manifest>

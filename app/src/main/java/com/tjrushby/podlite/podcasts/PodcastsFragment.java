@@ -17,7 +17,6 @@ import com.tjrushby.podlite.R;
 import javax.inject.Inject;
 
 import dagger.android.support.AndroidSupportInjection;
-import timber.log.Timber;
 
 public class PodcastsFragment extends Fragment {
 
@@ -31,7 +30,7 @@ public class PodcastsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        viewModel = ViewModelProviders.of(this, factory).get(PodcastsViewModel.class);
+        viewModel = ViewModelProviders.of(getActivity(), factory).get(PodcastsViewModel.class);
 
         return super.onCreateView(inflater, container, savedInstanceState);
     }
@@ -52,8 +51,7 @@ public class PodcastsFragment extends Fragment {
     private void setupFab() {
         FloatingActionButton fab = getActivity().findViewById(R.id.fab_add_podcast);
         fab.setOnClickListener((view) -> {
-            Timber.d("fab_add_podcast clicked");
-            viewModel.addNewPodcast();
+            viewModel.searchPodcasts();
         });
     }
 }

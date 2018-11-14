@@ -3,6 +3,8 @@ package com.tjrushby.podlite.di;
 import android.app.Application;
 import android.arch.persistence.room.Room;
 
+import com.google.gson.GsonBuilder;
+import com.tjrushby.podlite.api.ITunesService;
 import com.tjrushby.podlite.data.source.PodcastsRepository;
 import com.tjrushby.podlite.data.source.local.PodLiteDatabase;
 import com.tjrushby.podlite.data.source.local.PodcastsDao;
@@ -13,9 +15,21 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 @Module(includes = ViewModelModule.class)
 public class AppModule {
+
+    @Provides
+    @Singleton
+    ITunesService provideITunesService() {
+        return new Retrofit.Builder()
+                .baseUrl("https://itunes.apple.com/")
+                .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().create()))
+                .build()
+                .create(ITunesService.class);
+    }
 
     @Provides
     @Singleton

@@ -1,4 +1,6 @@
-package com.tjrushby.podlite.di;
+package com.tjrushby.podlite.podcasts;
+
+import android.content.Intent;
 
 import com.tjrushby.podlite.podcasts.PodcastsFragment;
 
@@ -12,4 +14,10 @@ public class PodcastsActivityModule {
     PodcastsFragment providePodcastsFragment() {
         return new PodcastsFragment();
     }
+
+    @Provides
+    Intent provideIntent() {
+        return new Intent();
+    }
+
 }

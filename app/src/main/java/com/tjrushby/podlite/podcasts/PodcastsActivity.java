@@ -2,6 +2,7 @@ package com.tjrushby.podlite.podcasts;
 
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -9,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.tjrushby.podlite.R;
 import com.tjrushby.podlite.data.source.PodcastsRepository;
+import com.tjrushby.podlite.search.SearchActivity;
 
 import javax.inject.Inject;
 
@@ -24,13 +26,16 @@ public class PodcastsActivity extends AppCompatActivity
     protected DispatchingAndroidInjector<Fragment> fragmentAndroidInjector;
 
     @Inject
-    protected ViewModelProvider.Factory factory;
+    protected Intent intent;
 
     @Inject
     protected PodcastsFragment podcastsFragment;
 
     @Inject
     protected PodcastsRepository repo;
+
+    @Inject
+    protected ViewModelProvider.Factory factory;
 
     private PodcastsViewModel viewModel;
 
@@ -39,11 +44,14 @@ public class PodcastsActivity extends AppCompatActivity
         AndroidInjection.inject(this);
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_podcasts);
+        setContentView(R.layout.podcasts_activity);
 
         setupViewFragment();
 
         viewModel = ViewModelProviders.of(this, factory).get(PodcastsViewModel.class);
+
+        // subscribe to search event
+        viewModel.getSearchEvent().observe(this, (@Nullable Void v) -> searchTask());
 
     }
 
@@ -51,12 +59,12 @@ public class PodcastsActivity extends AppCompatActivity
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.contentFrame, podcastsFragment)
                 .commit();
-
     }
 
     @Override
-    public void addNewPodcast() {
-        // start search activity for result
+    public void searchTask() {
+        intent.setClass(this, SearchActivity.class);
+        startActivity(intent);
     }
 
     @Override
