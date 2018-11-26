@@ -1,4 +1,4 @@
-package com.tjrushby.podlite.search;
+package com.tjrushby.podlite.ui.search;
 
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -9,16 +9,20 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 
 import com.tjrushby.podlite.R;
 import com.tjrushby.podlite.binding.FragmentDataBindingComponent;
-import com.tjrushby.podlite.common.PodcastAdapter;
+import com.tjrushby.podlite.ui.common.PodcastAdapter;
 import com.tjrushby.podlite.databinding.SearchFragmentBinding;
 import com.tjrushby.podlite.util.AutoClearedValue;
 
@@ -60,6 +64,12 @@ public class SearchFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         viewModel = ViewModelProviders.of(getActivity(), factory).get(SearchViewModel.class);
 
+        ((AppCompatActivity) getActivity()).setSupportActionBar(getActivity().findViewById(R.id.toolbar));
+
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        actionBar.setTitle("");
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
         initViews();
 
         PodcastAdapter rvAdapter = new PodcastAdapter(dataBindingComponent);
@@ -74,19 +84,29 @@ public class SearchFragment extends Fragment {
     }
 
     @Override
+    public void onDetach() {
+        viewModel.clearResults();
+        super.onDetach();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.search_menu, menu);
 
         SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
-        searchView.setIconifiedByDefault(false);
-        searchView.requestFocus();
+        searchView.setIconifiedByDefault(true);
+        searchView.setIconified(false);
+        searchView.requestFocusFromTouch();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String queryText) {
                 if(queryText != null) {
                     viewModel.searchByTerm(queryText);
+
+                    // focus on RecyclerView
                     searchView.clearFocus();
+                    binding.get().rvSearchResults.requestFocus();
                 }
 
                 return true;
@@ -97,6 +117,27 @@ public class SearchFragment extends Fragment {
                 return true;
             }
         });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case android.R.id.home:
+                // hide soft keyboard if visible
+                InputMethodManager inMethodManager = (InputMethodManager)
+                        getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                if(inMethodManager.isActive()) {
+                    inMethodManager.hideSoftInputFromWindow(
+                            getActivity().getCurrentFocus().getWindowToken(),
+                            InputMethodManager.HIDE_NOT_ALWAYS
+                    );
+                }
+
+                getActivity().onBackPressed();
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     /*

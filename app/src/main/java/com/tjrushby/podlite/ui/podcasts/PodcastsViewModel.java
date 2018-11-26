@@ -1,4 +1,4 @@
-package com.tjrushby.podlite.podcasts;
+package com.tjrushby.podlite.ui.podcasts;
 
 import android.arch.lifecycle.ViewModel;
 
@@ -6,8 +6,6 @@ import com.tjrushby.podlite.SingleLiveEvent;
 import com.tjrushby.podlite.data.source.PodcastsRepository;
 
 import javax.inject.Inject;
-
-import timber.log.Timber;
 
 public class PodcastsViewModel extends ViewModel {
 

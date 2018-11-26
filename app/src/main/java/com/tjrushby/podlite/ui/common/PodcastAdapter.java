@@ -1,4 +1,4 @@
-package com.tjrushby.podlite.common;
+package com.tjrushby.podlite.ui.common;
 
 import android.databinding.DataBindingComponent;
 import android.databinding.DataBindingUtil;

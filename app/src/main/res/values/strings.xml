@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">PodLite</string>
+    <string name="label_description">Description</string>
     <string name="label_episodes">Episodes: %s</string>
+    <string name="label_follow">Follow</string>
     <string name="search_title">Search...</string>
 </resources>

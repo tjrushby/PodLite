@@ -15,8 +15,7 @@ import dagger.android.AndroidInjector;
 @Component(modules = {
         AndroidInjectionModule.class,
         AppModule.class,
-        ActivityBuildersModule.class,
-        FragmentBuildersModule.class
+        MainActivityModule.class
 })
 public interface AppComponent extends AndroidInjector<PodLiteApp> {
 

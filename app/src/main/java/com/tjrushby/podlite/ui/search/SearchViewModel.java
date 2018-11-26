@@ -1,4 +1,4 @@
-package com.tjrushby.podlite.search;
+package com.tjrushby.podlite.ui.search;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
@@ -75,6 +75,11 @@ public class SearchViewModel extends ViewModel {
         });
     }
 
+    void clearResults() {
+        results.setValue(null);
+        resultsText.setValue(null);
+    }
+
     LiveData<Boolean> isLoading() {
         return loading;
     }
@@ -83,7 +88,7 @@ public class SearchViewModel extends ViewModel {
         return results;
     }
 
-    public MutableLiveData<String> getResultsText() {
+    MutableLiveData<String> getResultsText() {
         return resultsText;
     }
 }
