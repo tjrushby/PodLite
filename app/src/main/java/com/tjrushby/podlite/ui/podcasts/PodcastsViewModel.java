@@ -3,7 +3,7 @@ package com.tjrushby.podlite.ui.podcasts;
 import android.arch.lifecycle.ViewModel;
 
 import com.tjrushby.podlite.SingleLiveEvent;
-import com.tjrushby.podlite.data.source.PodcastsRepository;
+import com.tjrushby.podlite.data.PodcastsRepository;
 
 import javax.inject.Inject;
 

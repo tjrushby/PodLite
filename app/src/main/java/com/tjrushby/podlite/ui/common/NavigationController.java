@@ -4,6 +4,7 @@ import android.support.v4.app.FragmentManager;
 
 import com.tjrushby.podlite.MainActivity;
 import com.tjrushby.podlite.R;
+import com.tjrushby.podlite.ui.podcastdetails.PodcastDetailsFragment;
 import com.tjrushby.podlite.ui.podcasts.PodcastsFragment;
 import com.tjrushby.podlite.ui.search.SearchFragment;
 
@@ -19,6 +20,15 @@ public class NavigationController {
     public NavigationController(MainActivity mainActivity) {
         this.containerId = R.id.contentFrame;
         this.fragmentManger = mainActivity.getSupportFragmentManager();
+    }
+
+    public void navigateToPodcastDetails(String collectionId) {
+        PodcastDetailsFragment podDetailsFragment = PodcastDetailsFragment.create(collectionId);
+
+        fragmentManger.beginTransaction()
+                .replace(containerId, podDetailsFragment)
+                .addToBackStack(null)
+                .commitAllowingStateLoss();
     }
 
     public void navigateToPodcasts() {

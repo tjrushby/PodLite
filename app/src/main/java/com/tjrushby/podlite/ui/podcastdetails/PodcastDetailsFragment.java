@@ -25,8 +25,10 @@ import dagger.android.support.AndroidSupportInjection;
 
 public class PodcastDetailsFragment extends Fragment {
 
+    private static final String COLLECTION_ID_KEY = "collection_id";
+
     @Inject
-    protected ViewModelProvider.Factory factory;
+    ViewModelProvider.Factory factory;
 
     AutoClearedValue<DetailsFragmentBinding> binding;
 
@@ -50,8 +52,13 @@ public class PodcastDetailsFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         viewModel = ViewModelProviders.of(getActivity(), factory).get(PodcastDetailsViewModel.class);
+
+        Bundle args = getArguments();
+        if(args != null && args.containsKey(COLLECTION_ID_KEY)) {
+            // todo set collectionId in viewModel from args
+        }
+
 
         initViews();
     }
@@ -60,6 +67,16 @@ public class PodcastDetailsFragment extends Fragment {
     public void onAttach(Context context) {
         AndroidSupportInjection.inject(this);
         super.onAttach(context);
+    }
+
+    public static PodcastDetailsFragment create(String collectionId) {
+        PodcastDetailsFragment fragment = new PodcastDetailsFragment();
+
+        Bundle args = new Bundle();
+        args.putString(COLLECTION_ID_KEY, collectionId);
+        fragment.setArguments(args);
+
+        return fragment;
     }
 
     /*

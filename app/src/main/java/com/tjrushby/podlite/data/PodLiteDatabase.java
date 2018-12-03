@@ -1,9 +1,7 @@
-package com.tjrushby.podlite.data.source.local;
+package com.tjrushby.podlite.data;
 
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.RoomDatabase;
-
-import com.tjrushby.podlite.data.Podcast;
 
 
 /*

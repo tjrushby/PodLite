@@ -5,11 +5,10 @@ import android.arch.persistence.room.Room;
 
 import com.google.gson.GsonBuilder;
 import com.tjrushby.podlite.api.ITunesService;
-import com.tjrushby.podlite.data.source.PodcastsRepository;
-import com.tjrushby.podlite.data.source.local.PodLiteDatabase;
-import com.tjrushby.podlite.data.source.local.PodcastsDao;
-import com.tjrushby.podlite.data.source.local.PodcastsLocalDataSource;
+import com.tjrushby.podlite.data.PodLiteDatabase;
+import com.tjrushby.podlite.data.PodcastsDao;
 import com.tjrushby.podlite.util.AppExecutors;
+import com.tjrushby.podlite.util.LiveDataCallAdapterFactory;
 
 import javax.inject.Singleton;
 
@@ -27,6 +26,7 @@ public class AppModule {
         return new Retrofit.Builder()
                 .baseUrl("https://itunes.apple.com/")
                 .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().create()))
+                .addCallAdapterFactory(new LiveDataCallAdapterFactory())
                 .build()
                 .create(ITunesService.class);
     }
@@ -49,16 +49,4 @@ public class AppModule {
         return new AppExecutors();
     }
 
-    @Provides
-    @Singleton
-    PodcastsLocalDataSource providePodcastsLocalDataSource(AppExecutors appExecutors,
-                                                           PodcastsDao podcastsDao) {
-        return new PodcastsLocalDataSource(appExecutors, podcastsDao);
-    }
-
-    @Provides
-    @Singleton
-    PodcastsRepository providePodcastsRepository(PodcastsLocalDataSource localDataSource) {
-        return new PodcastsRepository(localDataSource);
-    }
 }

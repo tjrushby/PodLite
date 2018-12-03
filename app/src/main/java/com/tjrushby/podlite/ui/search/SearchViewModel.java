@@ -2,93 +2,99 @@ package com.tjrushby.podlite.ui.search;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Transformations;
 import android.arch.lifecycle.ViewModel;
+import android.support.annotation.NonNull;
 
-import com.tjrushby.podlite.api.ITunesService;
-import com.tjrushby.podlite.api.PodcastsSearchResponse;
 import com.tjrushby.podlite.data.Podcast;
+import com.tjrushby.podlite.data.PodcastsRepository;
+import com.tjrushby.podlite.data.Resource;
+import com.tjrushby.podlite.data.Status;
+import com.tjrushby.podlite.util.AbsentLiveData;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import timber.log.Timber;
-
 public class SearchViewModel extends ViewModel {
 
-    private ITunesService iTunesService;
+    private final LiveData<Boolean> isLoading;
 
-    private final MutableLiveData<Boolean> loading = new MutableLiveData<>();
+    private final LiveData<Resource<List<Podcast>>> results;
 
-    private final MutableLiveData<List<Podcast>> results = new MutableLiveData<>();
+    private final LiveData<String> resultsText;
 
-    private final MutableLiveData<String> resultsText = new MutableLiveData<>();
+    private final MutableLiveData<String> searchTerm = new MutableLiveData<>();
 
     @Inject
-    public SearchViewModel(ITunesService iTunesService) {
-        this.iTunesService = iTunesService;
-    }
+    SearchViewModel(PodcastsRepository podRepo) {
+        results = Transformations.switchMap(searchTerm, input -> {
+            if(input == null || input.trim().length() == 0) {
+                return AbsentLiveData.create();
+            } else {
+                return podRepo.searchPodcasts(input);
+            }
+        });
 
-    void searchByTerm(String searchTerm) {
-        Timber.d("searchByTerm: %s", searchTerm);
-
-        results.setValue(null);
-        loading.setValue(true);
-
-        Call<PodcastsSearchResponse> call =
-                iTunesService.getPodcastsByTerm(searchTerm);
-
-        call.enqueue(new Callback<PodcastsSearchResponse>() {
-            @Override
-            public void onResponse(Call<PodcastsSearchResponse> call,
-                                   Response<PodcastsSearchResponse> response) {
-
-                if(response.body() != null) {
-                    results.setValue(response.body().getResults());
-
-                    if(response.body().getResults().size() > 0) {
-                        resultsText.setValue(null);
-                    } else {
-                        resultsText.setValue("No results for '" + searchTerm + "'");
-                    }
-                } else {
-                    Timber.d("Error Code: %s", response.code());
-                    Timber.d("Error Message: %s", response.message());
-                    results.setValue(null);
-                    resultsText.setValue("Too many requests. Please wait a moment and try again.");
+        isLoading = Transformations.switchMap(results, resource -> {
+            if(resource != null) {
+                switch (resource.status) {
+                    case LOADING:
+                        return new LiveData<Boolean>() {
+                            @Override
+                            protected void onActive() {
+                                super.onActive();
+                                setValue(true);
+                            }
+                        };
                 }
-
-                loading.setValue(false);
             }
 
-            @Override
-            public void onFailure(Call<PodcastsSearchResponse> call, Throwable t) {
-                Timber.d("Error: %s", t.getCause());
+            return new LiveData<Boolean>() {
+                @Override
+                protected void onActive() {
+                    super.onActive();
+                    setValue(false);
+                }
+            };
+        });
 
-                loading.setValue(false);
-                results.setValue(null);
-                resultsText.setValue("An error occurred.");
+        resultsText = Transformations.switchMap(results, resource -> {
+            if(resource != null) {
+                if(resource.status == Status.SUCCESS && resource.data.isEmpty()) {
+                    MutableLiveData<String> newResultsText = new MutableLiveData<>();
+                    newResultsText.setValue("No results found for " + searchTerm.getValue());
+                    return newResultsText;
+                }
             }
+
+            return AbsentLiveData.create();
         });
     }
 
-    void clearResults() {
-        results.setValue(null);
-        resultsText.setValue(null);
+    void setSearchTerm(@NonNull String originalInput) {
+        String input = originalInput.toLowerCase(Locale.getDefault()).trim();
+
+        if(Objects.equals(input, searchTerm.getValue())) {
+            return;
+        }
+
+        searchTerm.setValue(input);
     }
+
+
 
     LiveData<Boolean> isLoading() {
-        return loading;
+        return isLoading;
     }
 
-    LiveData<List<Podcast>> getResults() {
+    LiveData<Resource<List<Podcast>>> getResults() {
         return results;
     }
 
-    MutableLiveData<String> getResultsText() {
+    LiveData<String> getResultsText() {
         return resultsText;
     }
 }

@@ -22,6 +22,7 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.tjrushby.podlite.R;
 import com.tjrushby.podlite.binding.FragmentDataBindingComponent;
+import com.tjrushby.podlite.ui.common.NavigationController;
 import com.tjrushby.podlite.ui.common.PodcastAdapter;
 import com.tjrushby.podlite.databinding.SearchFragmentBinding;
 import com.tjrushby.podlite.util.AutoClearedValue;
@@ -29,11 +30,15 @@ import com.tjrushby.podlite.util.AutoClearedValue;
 import javax.inject.Inject;
 
 import dagger.android.support.AndroidSupportInjection;
+import timber.log.Timber;
 
 public class SearchFragment extends Fragment {
 
     @Inject
-    protected ViewModelProvider.Factory factory;
+    NavigationController navigationController;
+
+    @Inject
+    ViewModelProvider.Factory factory;
 
     AutoClearedValue<SearchFragmentBinding> binding;
 
@@ -72,7 +77,8 @@ public class SearchFragment extends Fragment {
 
         initViews();
 
-        PodcastAdapter rvAdapter = new PodcastAdapter(dataBindingComponent);
+        PodcastAdapter rvAdapter = new PodcastAdapter(dataBindingComponent,
+                podcast -> navigationController.navigateToPodcastDetails(podcast.getCollectionId()));
         binding.get().rvSearchResults.setAdapter(rvAdapter);
         adapter = new AutoClearedValue<>(this, rvAdapter);
     }
@@ -85,7 +91,6 @@ public class SearchFragment extends Fragment {
 
     @Override
     public void onDetach() {
-        viewModel.clearResults();
         super.onDetach();
     }
 
@@ -102,7 +107,7 @@ public class SearchFragment extends Fragment {
             @Override
             public boolean onQueryTextSubmit(String queryText) {
                 if(queryText != null) {
-                    viewModel.searchByTerm(queryText);
+                    viewModel.setSearchTerm(queryText);
 
                     // focus on RecyclerView
                     searchView.clearFocus();
@@ -144,14 +149,16 @@ public class SearchFragment extends Fragment {
      * observe LiveData for isLoading, results, and resultsText
      */
     private void initViews() {
-        viewModel.isLoading().observe(this, loading -> {
+        viewModel.isLoading().observe(getViewLifecycleOwner(), loading -> {
             binding.get().setLoading(loading);
             binding.get().executePendingBindings();
         });
 
-        viewModel.getResults().observe(this, result -> {
-            adapter.get().setItems(result);
-            binding.get().executePendingBindings();
+        viewModel.getResults().observe(getViewLifecycleOwner(), results -> {
+            if(results != null) {
+                adapter.get().setItems(results.data);
+                binding.get().executePendingBindings();
+            }
         });
 
         viewModel.getResultsText().observe(getViewLifecycleOwner(), resultsText -> {

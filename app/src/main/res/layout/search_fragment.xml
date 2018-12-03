@@ -7,9 +7,13 @@
 
         <import type="com.tjrushby.podlite.data.Podcast" />
 
-        <import type="java.util.List" />
+        <import type="com.tjrushby.podlite.data.Resource" />
+
+        <import type="com.tjrushby.podlite.data.Status" />
 
         <import type="android.view.View" />
+
+        <import type="java.util.List" />
 
         <variable
             name="loading"
@@ -18,6 +22,10 @@
         <variable
             name="resultsText"
             type="String" />
+
+        <variable
+            name="searchResource"
+            type="Resource" />
     </data>
 
     <android.support.design.widget.CoordinatorLayout

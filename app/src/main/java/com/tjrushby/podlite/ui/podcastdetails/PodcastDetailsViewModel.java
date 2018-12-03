@@ -5,18 +5,26 @@ import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 
 import com.tjrushby.podlite.data.Podcast;
+import com.tjrushby.podlite.data.PodcastsRepository;
 
 import javax.inject.Inject;
 
 
 public class PodcastDetailsViewModel extends ViewModel {
 
+    private final MutableLiveData<String> collectionId = new MutableLiveData<>();
+
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
 
-    private final MutableLiveData<Podcast> podcast = new MutableLiveData<>();
+    private LiveData<Podcast> podcast;
 
     @Inject
-    public PodcastDetailsViewModel() {
+    public PodcastDetailsViewModel(PodcastsRepository podsRepository) {
+
+    }
+
+    void setCollectionId(String collectionId) {
+        this.collectionId.setValue(collectionId);
     }
 
     LiveData<Boolean> getIsLoading() {
